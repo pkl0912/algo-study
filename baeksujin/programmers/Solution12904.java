@@ -31,7 +31,7 @@ public class Solution12904 {
                     if (s.charAt(i) == s.charAt(j)) {
                         if (len == 2 || dp[i+1][j-1]) {
                             dp[i][j] = true;
-                            max = Math.max(max, len) // 안의 문자열이 true일때는 현재와 끝이 동일하다면 팰린드롬 문자열임
+                            max = Math.max(max, len) ;// 안의 문자열이 true일때는 현재와 끝이 동일하다면 팰린드롬 문자열임
                         }
                     }
                 }
