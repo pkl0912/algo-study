@@ -1,4 +1,4 @@
-package programmers.retry;
+package programmers;
 
 public class Solution468372 {
 
