@@ -1,0 +1,89 @@
+name: PR Template Check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  check-template:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check required sections filled (3/6 per problem)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body || '';
+
+            const problemNames = ['문제 1', '문제 2'];
+            const sections = [
+              '문제 분석 - 필기',
+              '가능한 엣지 케이스',
+              '왜 이렇게 풀었는지',
+              '가능한 다른 풀이',
+              '시간, 공간 복잡도 분석',
+              '걸린 시간',
+            ];
+
+            const lines = body.split('\n');
+            const problems = {};
+            let currentProblem = null;
+            let currentSection = null;
+
+            for (const line of lines) {
+              const problemMatch = line.match(/^#\s*(.+?)\s*$/);
+              const matchedProblem = problemMatch && problemNames.find(p => problemMatch[1].includes(p));
+              if (matchedProblem) {
+                currentProblem = matchedProblem;
+                problems[currentProblem] = problems[currentProblem] || {};
+                currentSection = null;
+                continue;
+              }
+
+              const sectionMatch = line.match(/^##\s*\d*\.?\s*(.+?)\s*$/);
+              const matchedSection = sectionMatch && sections.find(s => sectionMatch[1].includes(s));
+              if (matchedSection && currentProblem) {
+                currentSection = matchedSection;
+                problems[currentProblem][currentSection] = [];
+                continue;
+              }
+
+              if (currentProblem && currentSection) {
+                problems[currentProblem][currentSection].push(line);
+              }
+            }
+
+            let allOk = true;
+            const reportLines = [];
+
+            for (const p of problemNames) {
+              const secMap = problems[p] || {};
+              let filledCount = 0;
+              const missing = [];
+
+              for (const s of sections) {
+                const content = (secMap[s] || [])
+                  .join('\n')
+                  .replace(/<!--[\s\S]*?-->/g, '')
+                  .trim();
+                if (content.length > 0) {
+                  filledCount++;
+                } else {
+                  missing.push(s);
+                }
+              }
+
+              const ok = filledCount >= 3;
+              allOk = allOk && ok;
+              reportLines.push(
+                `${p}: ${filledCount}/6 ${ok ? 'OK' : 'FAIL'}` +
+                (missing.length > 0 ? ` (미작성: ${missing.join(', ')})` : '')
+              );
+            }
+
+            core.info(reportLines.join('\n'));
+
+            if (!allOk) {
+              core.setFailed(
+                `문제 1, 문제 2 각각 6개 항목 중 최소 3개를 작성해야 합니다.\n${reportLines.join('\n')}`
+              );
+            }
