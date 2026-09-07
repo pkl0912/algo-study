@@ -35,7 +35,6 @@ class Solution {
         return num;
     }
 
-
     private String toWord(long num) {
         StringBuilder sb = new StringBuilder();
 
