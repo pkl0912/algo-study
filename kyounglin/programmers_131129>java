@@ -1,0 +1,51 @@
+
+import java.util.*;
+
+class Solution {
+    public int[] solution(int target) {
+        int[][] dp = new int[target + 1][2];
+
+        for (int i = 1; i <= target; i++) {
+            dp[i][0] = Integer.MAX_VALUE / 2;
+            dp[i][1] = -1;
+        }
+        dp[0][0] = 0;
+        dp[0][1] = 0;
+
+        for (int i = 1; i <= target; i++) {
+            for (int n = 1; n <= 20; n++) {
+
+                if (i >= n) {
+                    update(dp, i, n, 1);
+                }
+
+                if (i >= 2 * n) {
+                    update(dp, i, 2 * n, 0);
+                }
+
+                if (i >= 3 * n) {
+                    update(dp, i, 3 * n, 0);
+                }
+            }
+
+            if (i >= 50) {
+                update(dp, i, 50, 1);
+            }
+        }
+
+        return dp[target];
+    }
+
+    private void update(int[][] dp, int target,
+                        int score, int bonus) {
+        int darts = dp[target - score][0] + 1;
+        int singles = dp[target - score][1] + bonus;
+
+        if (darts < dp[target][0]
+                || (darts == dp[target][0]
+                && singles > dp[target][1])) {
+            dp[target][0] = darts;
+            dp[target][1] = singles;
+        }
+    }
+}
